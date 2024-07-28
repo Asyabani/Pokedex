@@ -1,19 +1,19 @@
 const MAX_POKEMON = 151;
-const listwrapper = document.querySelector(".list-wrapper");
+const listWrapper = document.querySelector(".list-wrapper");
 const searchInput = document.querySelector("#search-input");
 const numberFilter = document.querySelector("#number");
 const nameFilter = document.querySelector("#name");
 const notFoundMessage = document.querySelector("#not-found-message");
+
 //Mendeklarasikan sebuah array kosong untuk menyimpan data Pokemon
 let allPokemons = [];
-// Memanggil APT PokeAPI untuk mendapatkan data Pokemon
+
+// Memanggil API PokeAPI untuk mendapatkan data Pokemon
 fetch(`https://pokeapi.co/api/v2/pokemon?limit=${MAX_POKEMON}`)
-  // tabnine: test | explain | document | ask
   .then((response) => response.json()) // Mengubah response menjadi format JSON
-  // tabnine: test | explain | document | ask
   .then((data) => {
-    allPokemons = data.results; // Menyimpan data Pokemon yang didapat dari APT ke dalam array allPokemons
-    console.log(allPokemons);
+    allPokemons = data.results; // Menyimpan data Pokemon yang didapat dari API ke dalam array allPokemons
+    // console.log(allPokemons)
     displayPokemons(allPokemons);
   });
 
@@ -21,7 +21,10 @@ fetch(`https://pokeapi.co/api/v2/pokemon?limit=${MAX_POKEMON}`)
 async function fetchPokemonDataBeforeRedirect(id) {
   try {
     // Menggunakan Promise.all untuk menjalankan dua fetch request secara paralel
-    const [pokemon, pokemonSpecies] = await Promise.all([fetch("https://pokeapi.co/api/v2/pokemon/${id}").then((res) => res.json()), fetch("https://pokeapi.co/api/v2/pokemon-species/${id}").then((res) => res.json())]);
+    const [pokemon, pokemonSpecies] = await Promise.all([
+      fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then((res) => res.json()), // Mengambil data Pokemon berdasarkan ID dari API PokeAPI dan mengubahnya menjadi JSON
+      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`).then((res) => res.json()), // Mengambil data spesies Pokemon berdasarkan ID dari API PokeAPI dan mengubahnya menjadi JSON
+    ]);
     return true; // Mengembalikan nilai true jika data berhasil diambil
   } catch (error) {
     // Menangkap dan menampilkan kesalahan jika terjadi masalah saat mengambil data
@@ -29,43 +32,81 @@ async function fetchPokemonDataBeforeRedirect(id) {
   }
 }
 
+// Fungsi untuk menampilkan daftar Pokemon dalam elemen listWrapper
 function displayPokemons(pokemon) {
-  // Mengosongkan konten dari listurapper sebelum menambahkan elemen baru
-  listwrapper.inneгHTML = "";
+  // Mengosongkan konten dari listWrapper sebelum menambahkan elemen baru
+  listWrapper.innerHTML = "";
+
   // Mengiterasi setiap objek Pokemon dalam array pokemon
   pokemon.forEach((pokemon) => {
-    const pokemonID = pokemon.url.split("/")[6]; // Mendapatkan ID Pokemon dari URL dengan memisahkan suring dan mengambil bagian ke-6
-    const listItem = document.createElement("div"); //
-    // Membuat clemen diu baru untuk setiap item dalam daftar
-    listItem.className = "list-item"; // Menambalikan kelas CSS ke elemen diy
-    // Menetapkan konten HTML dalam elemen listrem
+    const pokemonID = pokemon.url.split("/")[6]; // Mendapatkan ID Pokemon dari URL dengan memisahkan string dan mengambil bagian ke-6
+    const listItem = document.createElement("div"); // Membuat elemen div baru untuk setiap item dalam daftar
+    listItem.className = "list-item"; // Menambahkan kelas CSS ke elemen div
+
+    // Menetapkan konten HTML dalam elemen listItem
     listItem.innerHTML = `
-    <div class="number-wrap">
-        <p class="caption-fonts">#${pokemonID}</p>
-    </div>
-    <div class="img-wrap">
-        <img src="https://raw.githubusercontent.com/pokeapi/sprites/master/sprites/pokemon/other/dream world/${pokemonID}.svg" alt="$(pokemon.name)">
-    </div>
-    <div class="name wrap">
-    <p class="body3-fonts">#${pokemon.name}</p>
-    </div>`;
+          <div class="number-wrap">
+              <p class="caption-fonts">#${pokemonID}</p>
+          </div>
+          <div class="img-wrap">
+              <img src="https://raw.githubusercontent.com/pokeapi/sprites/master/sprites/pokemon/other/dream-world/${pokemonID}.svg" alt="${pokemon.name}" />
+          </div>
+          <div class="name-wrap">
+              <p class="body3-fonts">#${pokemon.name}</p>
+          </div>
+      `;
+
     // Menambahkan event listener untuk menangani klik pada setiap item
     listItem.addEventListener("click", async () => {
-      const success = await fetchPokemonDataBeforeRedirect(pokemonID);
+      const success = await fetchPokemonDataBeforeRedirect(pokemonID); // Memanggil fungsi fetchPokemonDataBeforeRedirect sebelum melakukan redirect
       if (success) {
-        // Memanggil fungsi ferch Pakemor DataBe ForeRedirect schelum melakukan redirect
-        // Tika data berhasil diambil, lakukan redirect ke halaman detail
-        window.location.href = "/detail.html?id=${pokemonID}";
+        window.location.href = `./detail.html?id=${pokemonID}`; // Jika data berhasil diambil, lakukan redirect ke halaman detail
       }
     });
-    listwrapper.appendChild(listItem); // Menambahkan elemen Listitem ke dalam Listwrapper
+
+    listWrapper.appendChild(listItem); // Menambahkan elemen listItem ke dalam listWrapper
   });
 }
+
+// Digunakan untuk menambahkan event listener pada elemen searchInput untuk event keyup,
+// yang terjadi setiap kali pengguna melepaskan tombol keyboard setelah mengetik di input.
+searchInput.addEventListener("keyup", handleSearch);
+
+function handleSearch() {
+  const searchTerm = searchInput.value.toLowerCase(); // Mendapatkan nilai input pencarian dan mengonversi ke huruf kecil
+  let filteredPokemons; // Variabel untuk menyimpan hasil filter Pokemon
+
+  // Memilih filter berdasarkan opsi yang dipilih (berdasarkan ID atau nama)
+  if (numberFilter.checked) {
+    filteredPokemons = allPokemons.filter((pokemon) => {
+      const pokemonID = pokemon.url.split("/")[6]; // Mendapatkan ID Pokemon dari URL
+      return pokemonID.startsWith(searchTerm); // Memeriksa apakah ID Pokemon dimulai dengan searchTerm
+    });
+  } else if (nameFilter.checked) {
+    filteredPokemons = allPokemons.filter((pokemon) => pokemon.name.toLowerCase().startsWith(searchTerm));
+  } else {
+    filteredPokemons = allPokemons; // Jika tidak ada filter yang dipilih, tampilkan semua Pokemon
+  }
+
+  displayPokemons(filteredPokemons); // Menampilkan Pokemon yang sudah difilter
+
+  // Menampilkan atau menyembunyikan pesan jika Pokemon tidak ditemukan
+  if (filteredPokemons.length === 0) {
+    notFoundMessage.style.display = "block";
+  } else {
+    notFoundMessage.style.display = "none";
+  }
+}
+
+// Memilih elemen tombol close untuk pencarian
 const closeButton = document.querySelector(".search-close-icon");
-// Menambahkan event listener untuk klik pada tombol close closeButton.addEventListener("click", clearsearch);
+
+// Menambahkan event listener untuk klik pada tombol close
+closeButton.addEventListener("click", clearSearch);
+
 // Fungsi untuk membersihkan atau menghapus hasil pencarian
-// tabnine: test | explain | document | ask
 function clearSearch() {
-  searchInput.value = ""; // Mengosongkan nilai input pencarian displayPokemons (allPokemons); // Menampilkan kembali semua Pokemon (tidak
-  notFoundMessage.style.display = "none"; // Menyembunyikan pesan "not found
+  searchInput.value = ""; // Mengosongkan nilai input pencarian
+  displayPokemons(allPokemons); // Menampilkan kembali semua Pokemon (tidak difilter)
+  notFoundMessage.style.display = "none"; // Menyembunyikan pesan "not found" jika sebelumnya ditampilkan
 }

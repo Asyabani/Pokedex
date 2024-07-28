@@ -20,13 +20,9 @@ function handleInputChange(inputElement) {
 
   // Menambahkan atau menghapus class untuk ikon pencarian berdasarkan nilai input
   if (inputValue !== "") {
-    document
-      .querySelector("#search-close-icon")
-      .classList.add("search-close-icon-visible");
+    document.querySelector("#search-close-icon").classList.add("search-close-icon-visible");
   } else {
-    document
-      .querySelector("#search-close-icon")
-      .classList.remove("search-close-icon-visible");
+    document.querySelector("#search-close-icon").classList.remove("search-close-icon-visible");
   }
 }
 
@@ -36,17 +32,13 @@ function handleSearchCloseOnClick() {
   document.querySelector("#search-input").value = "";
 
   // Menghapus class "search-close-icon-visible" dari ikon pencarian
-  document
-    .querySelector("#search-close-icon")
-    .classList.remove("search-close-icon-visible");
+  document.querySelector("#search-close-icon").classList.remove("search-close-icon-visible");
 }
 
 // Fungsi untuk meng-handle klik pada ikon pengurutan
 function handleSortIconOnClick() {
   // Toggle class "filter-wrapper-open" pada elemen dengan class "filter-wrapper"
-  document
-    .querySelector(".filter-wrapper")
-    .classList.toggle("filter-wrapper-open");
+  document.querySelector(".filter-wrapper").classList.toggle("filter-wrapper-open");
 
   // Toggle class "filter-wrapper-overlay" pada elemen <body>
   document.querySelector("body").classList.toggle("filter-wrapper-overlay");
